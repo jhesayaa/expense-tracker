@@ -1,81 +1,68 @@
 package database
 
 import (
-    "fmt"
-    "log"
-    "os"
+	"fmt"
+	"log"
+	"os"
 
-    "github.com/joho/godotenv"
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
-    
-    "expense-tracker/internal/models"  
+	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
 
-func InitDB() {
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
-
-    dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-        os.Getenv("DB_HOST"),
-        os.Getenv("DB_USER"),
-        os.Getenv("DB_PASSWORD"),
-        os.Getenv("DB_NAME"),
-        os.Getenv("DB_PORT"),
-    )
-
-    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-    if err != nil {
-        log.Fatal("Failed to connect to database:", err)
-    }
-
-    DB = db
-    log.Println("✅ Database connected successfully")
-
-    AutoMigrate()
+func init() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("⚠️  Warning: .env file not found")
+	}
 }
 
-func AutoMigrate() {
-    err := DB.AutoMigrate(
-        &models.User{},
-        &models.Category{},
-        &models.Transaction{},
-    )
-    
-    if err != nil {
-        log.Fatal("Failed to migrate database:", err)
-    }
-    
-    log.Println("✅ Database migration completed")
+// Connect establishes database connection
+func Connect() (*gorm.DB, error) {
+	// Get database configuration from environment variables
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+	sslmode := os.Getenv("DB_SSLMODE")
 
-    SeedCategories()
+	// Default values
+	if host == "" {
+		host = "localhost"
+	}
+	if port == "" {
+		port = "5432"
+	}
+	if sslmode == "" {
+		sslmode = "disable"
+	}
+
+	// Build connection string
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslmode,
+	)
+
+	// Connect to database
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	log.Println("✅ Database connected successfully!")
+
+	DB = db
+	return db, nil
 }
 
-func SeedCategories() {
-    var count int64
-    DB.Model(&models.Category{}).Count(&count)
-    
-    if count == 0 {
-        categories := []models.Category{
-            {Name: "Food & Dining", Type: "expense", Icon: "🍔", Color: "#FF6B6B"},
-            {Name: "Transportation", Type: "expense", Icon: "🚗", Color: "#4ECDC4"},
-            {Name: "Shopping", Type: "expense", Icon: "🛍️", Color: "#45B7D1"},
-            {Name: "Entertainment", Type: "expense", Icon: "🎮", Color: "#96CEB4"},
-            {Name: "Bills & Utilities", Type: "expense", Icon: "📱", Color: "#FFEAA7"},
-            {Name: "Healthcare", Type: "expense", Icon: "🏥", Color: "#FD79A8"},
-            {Name: "Education", Type: "expense", Icon: "📚", Color: "#A0E7E5"},
-            {Name: "Others", Type: "expense", Icon: "📦", Color: "#B2B2B2"},
-            {Name: "Salary", Type: "income", Icon: "💰", Color: "#00B894"},
-            {Name: "Freelance", Type: "income", Icon: "💼", Color: "#00B894"},
-            {Name: "Investment", Type: "income", Icon: "📈", Color: "#00B894"},
-            {Name: "Others", Type: "income", Icon: "💵", Color: "#00B894"},
-        }
-        
-        DB.Create(&categories)
-        log.Println("✅ Default categories seeded")
-    }
+// GetDB returns the database instance
+func GetDB() *gorm.DB {
+	return DB
 }
