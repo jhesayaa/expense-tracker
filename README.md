@@ -30,7 +30,7 @@ Personal finance tracking application with categories, monthly reports, and expe
 ## 🎯 Development Roadmap
 
 - [x] Project setup and structure
-- [ ] Database schema and models
+- [x] Database schema and models
 - [ ] Authentication system
 - [ ] Category management
 - [ ] Transaction CRUD
