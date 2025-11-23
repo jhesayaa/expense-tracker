@@ -1,78 +1,90 @@
 package main
 
 import (
-    "log"
-    "os"
+	"log"
+	"os"
 
-    "github.com/gin-gonic/gin"
-    "github.com/gin-contrib/cors"
-    "github.com/joho/godotenv"
-    
-    "expense-tracker/internal/database"   
-    "expense-tracker/internal/handlers"   
-    "expense-tracker/internal/middleware"
+	"expense-tracker/internal/database"
+	"expense-tracker/internal/handlers"
+	"expense-tracker/internal/middleware"
+	"expense-tracker/internal/models"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    if err := godotenv.Load(); err != nil {
-        log.Println("No .env file found")
-    }
-    database.InitDB()
+	// Load environment variables
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found")
+	}
 
-    r := gin.Default()
+	// Connect to database
+	db, err := database.Connect()
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
 
-    config := cors.DefaultConfig()
-    config.AllowOrigins = []string{"http://localhost:3000"}
-    config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
-    config.AllowCredentials = true
-    
-    r.Use(cors.New(config))
+	// Auto-migrate models
+	if err := db.AutoMigrate(&models.User{}, &models.Category{}, &models.Transaction{}); err != nil {
+		log.Fatal("Failed to migrate database:", err)
+	}
 
-    r.GET("/health", func(c *gin.Context) {
-        c.JSON(200, gin.H{
-            "status": "OK",
-            "message": "Server is running",
-            "database": "Connected",
-        })
-    })
+	log.Println("✅ Database connected and migrated successfully!")
 
-    api := r.Group("/api/v1")
-    {
-        auth := api.Group("/auth")
-        {
-            auth.POST("/register", handlers.Register)
-            auth.POST("/login", handlers.Login)
-        }
-        protected := api.Group("/")
-        protected.Use(middleware.AuthMiddleware())
-        {
-            protected.GET("/user/profile", handlers.GetProfile)
-            
-            protected.GET("/transactions", func(c *gin.Context) {
-                c.JSON(200, gin.H{"message": "Get transactions - TODO"})
-            })
-            protected.POST("/transactions", func(c *gin.Context) {
-                c.JSON(200, gin.H{"message": "Create transaction - TODO"})
-            })
-            
-            protected.GET("/categories", func(c *gin.Context) {
-                c.JSON(200, gin.H{"message": "Get categories - TODO"})
-            })
-        }
-    }
+	// Initialize Gin router
+	router := gin.Default()
 
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
+	// CORS configuration
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"} // Frontend URL
+	config.AllowCredentials = true
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
+	router.Use(cors.New(config))
 
-    log.Printf("🚀 Server starting on port %s", port)
-    log.Println("📝 Available endpoints:")
-    log.Println("   POST /api/v1/auth/register")
-    log.Println("   POST /api/v1/auth/login")
-    log.Println("   GET  /api/v1/user/profile (protected)")
-    
-    if err := r.Run(":" + port); err != nil {
-        log.Fatal("Failed to start server:", err)
-    }
+	// Public routes (no authentication required)
+	auth := router.Group("/api/auth")
+	{
+		auth.POST("/register", handlers.Register)
+		auth.POST("/login", handlers.Login)
+	}
+
+	// Protected routes (authentication required)
+	api := router.Group("/api")
+	api.Use(middleware.AuthMiddleware())
+	{
+		// User routes
+		api.GET("/me", handlers.GetMe)
+
+		// Categories routes (will be implemented later)
+		// api.GET("/categories", handlers.GetCategories)
+		// api.POST("/categories", handlers.CreateCategory)
+		// api.PUT("/categories/:id", handlers.UpdateCategory)
+		// api.DELETE("/categories/:id", handlers.DeleteCategory)
+
+		// Transactions routes (will be implemented later)
+		// api.GET("/transactions", handlers.GetTransactions)
+		// api.POST("/transactions", handlers.CreateTransaction)
+		// api.PUT("/transactions/:id", handlers.UpdateTransaction)
+		// api.DELETE("/transactions/:id", handlers.DeleteTransaction)
+		// api.GET("/transactions/report", handlers.GetMonthlyReport)
+	}
+
+	// Health check
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
+	// Get port from environment or use default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Start server
+	log.Printf("🚀 Server running on http://localhost:%s\n", port)
+	if err := router.Run(":" + port); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 }
