@@ -31,8 +31,8 @@ Personal finance tracking application with categories, monthly reports, and expe
 
 - [x] Project setup and structure
 - [x] Database schema and models
-- [ ] Authentication system
-- [ ] Category management
+- [x] Authentication system
+- [x] Category management
 - [ ] Transaction CRUD
 - [ ] Monthly reports
 - [ ] Charts and visualization
