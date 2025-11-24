@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import DashboardLayout from '../dashboard/layout';
+import DashboardWrapper from '../dashboard/DashboardWrapper';
 import CategoryModal from '@/components/CategoryModal';
 import { categoryService, Category, CategoryInput } from '@/lib/category.service';
 
@@ -72,7 +72,7 @@ export default function CategoriesPage() {
   const customCategories = filteredCategories.filter((cat) => cat.user_id);
 
   return (
-    <DashboardLayout>
+    <DashboardWrapper>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -242,6 +242,6 @@ export default function CategoriesPage() {
         onSubmit={handleSubmitCategory}
         category={editingCategory}
       />
-    </DashboardLayout>
+    </DashboardWrapper>
   );
 }
