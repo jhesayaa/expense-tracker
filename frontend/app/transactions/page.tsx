@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import DashboardLayout from '../dashboard/layout';
+import DashboardWrapper from '../dashboard/DashboardWrapper';
 import TransactionModal from '@/components/TransactionModal';
 import {
   transactionService,
@@ -99,7 +99,7 @@ export default function TransactionsPage() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardWrapper>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -327,6 +327,6 @@ export default function TransactionsPage() {
         onSubmit={handleSubmitTransaction}
         transaction={editingTransaction}
       />
-    </DashboardLayout>
+    </DashboardWrapper>
   );
 }
