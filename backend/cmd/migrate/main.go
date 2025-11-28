@@ -40,19 +40,15 @@ func seedDefaultCategories(db *gorm.DB) {
 	log.Println("🌱 Seeding default categories...")
 
 	defaultCategories := []models.Category{
-		{Name: "Food & Dining", Type: "expense", Icon: "🍔", UserID: nil},
-		{Name: "Transportation", Type: "expense", Icon: "🚗", UserID: nil},
-		{Name: "Shopping", Type: "expense", Icon: "🛍️", UserID: nil},
-		{Name: "Entertainment", Type: "expense", Icon: "🎬", UserID: nil},
+		// Expense categories (4)
 		{Name: "Bills & Utilities", Type: "expense", Icon: "💡", UserID: nil},
-		{Name: "Healthcare", Type: "expense", Icon: "🏥", UserID: nil},
-		{Name: "Education", Type: "expense", Icon: "📚", UserID: nil},
+		{Name: "Food & Dining", Type: "expense", Icon: "🍽️", UserID: nil},
+		{Name: "Shopping", Type: "expense", Icon: "🛒", UserID: nil},
+		{Name: "Transportation", Type: "expense", Icon: "🚗", UserID: nil},
+		
+		// Income categories (2)
 		{Name: "Salary", Type: "income", Icon: "💰", UserID: nil},
-		{Name: "Freelance", Type: "income", Icon: "💼", UserID: nil},
-		{Name: "Investment", Type: "income", Icon: "📈", UserID: nil},
-		{Name: "Gift", Type: "income", Icon: "🎁", UserID: nil},
 		{Name: "Other Income", Type: "income", Icon: "💵", UserID: nil},
-		{Name: "Other Expense", Type: "expense", Icon: "📦", UserID: nil},
 	}
 
 	for _, category := range defaultCategories {

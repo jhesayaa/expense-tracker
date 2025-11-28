@@ -10,6 +10,11 @@ import {
   TransactionFilter,
 } from '@/lib/transaction.service';
 import { Category, categoryService } from '@/lib/category.service';
+import {
+  PlusIcon,
+  FunnelIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -33,19 +38,19 @@ export default function TransactionsPage() {
     fetchCategories();
   }, [filter]);
 
-    const fetchTransactions = async () => {
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-        const response = await transactionService.getTransactions(filter);
-        setTransactions(response.data || []); 
-        setPagination(response.pagination);
+      const response = await transactionService.getTransactions(filter);
+      setTransactions(response.data || []);
+      setPagination(response.pagination);
     } catch (error) {
-        console.error('Failed to fetch transactions:', error);
-        setTransactions([]); 
+      console.error('Failed to fetch transactions:', error);
+      setTransactions([]);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-    };
+  };
 
   const fetchCategories = async () => {
     try {
@@ -98,26 +103,35 @@ export default function TransactionsPage() {
     setFilter((prev) => ({ ...prev, page: newPage }));
   };
 
+  const hasActiveFilters = filter.type || filter.category_id || filter.start_date || filter.end_date;
+
   return (
     <DashboardWrapper>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Transactions
+            </h1>
             <p className="text-gray-600 mt-1">Manage your income and expenses</p>
           </div>
           <button
             onClick={handleAddTransaction}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center space-x-2"
+            className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
           >
-            <span>➕</span>
-            <span>Add Transaction</span>
+            <PlusIcon className="w-5 h-5" />
+            <span className="font-medium">Add Transaction</span>
           </button>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200/50">
+          <div className="flex items-center space-x-2 mb-4">
+            <FunnelIcon className="w-5 h-5 text-green-600" />
+            <h3 className="font-semibold text-gray-900">Filters</h3>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Type Filter */}
             <div>
@@ -127,7 +141,7 @@ export default function TransactionsPage() {
               <select
                 value={filter.type || ''}
                 onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
               >
                 <option value="">All</option>
                 <option value="income">Income</option>
@@ -145,7 +159,7 @@ export default function TransactionsPage() {
                 onChange={(e) =>
                   handleFilterChange('category_id', e.target.value ? parseInt(e.target.value) : undefined)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -165,7 +179,7 @@ export default function TransactionsPage() {
                 type="date"
                 value={filter.start_date || ''}
                 onChange={(e) => handleFilterChange('start_date', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
               />
             </div>
 
@@ -178,32 +192,38 @@ export default function TransactionsPage() {
                 type="date"
                 value={filter.end_date || ''}
                 onChange={(e) => handleFilterChange('end_date', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
               />
             </div>
           </div>
 
           {/* Clear Filters */}
-          {(filter.type || filter.category_id || filter.start_date || filter.end_date) && (
+          {hasActiveFilters && (
             <button
               onClick={() => setFilter({ page: 1, limit: 10 })}
-              className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="mt-4 flex items-center space-x-2 text-sm text-green-600 hover:text-green-700 font-medium group"
             >
-              Clear all filters
+              <XMarkIcon className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+              <span>Clear all filters</span>
             </button>
           )}
         </div>
 
         {/* Transactions List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-gray-600">Loading transactions...</div>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                <p className="text-gray-600 font-medium">Loading transactions...</p>
+              </div>
             </div>
           ) : !transactions || transactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-              <span className="text-4xl mb-4">📝</span>
-              <p className="text-lg">No transactions found</p>
+              <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-4">
+                <span className="text-4xl">📝</span>
+              </div>
+              <p className="text-lg font-semibold text-gray-900">No transactions found</p>
               <p className="text-sm mt-2">Add your first transaction to get started!</p>
             </div>
           ) : (
@@ -211,49 +231,53 @@ export default function TransactionsPage() {
               {/* Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
                         Date
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
                         Description
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
                         Category
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
                         Type
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-green-700 uppercase tracking-wider">
                         Amount
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-green-700 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-100">
                     {transactions.map((transaction) => (
-                      <tr key={transaction.id} className="hover:bg-gray-50">
+                      <tr key={transaction.id} className="hover:bg-gradient-to-r hover:from-green-50/50 hover:to-emerald-50/50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(transaction.date).toLocaleDateString()}
+                          {new Date(transaction.date).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
                           {transaction.description}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <span className="inline-flex items-center space-x-2">
-                            <span>{transaction.category.icon}</span>
+                          <span className="inline-flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg">
+                            <span className="text-lg">{transaction.category.icon}</span>
                             <span>{transaction.category.name}</span>
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                               transaction.type === 'income'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700'
+                                : 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700'
                             }`}
                           >
                             {transaction.type}
@@ -261,7 +285,7 @@ export default function TransactionsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                           <span
-                            className={`font-semibold ${
+                            className={`font-bold ${
                               transaction.type === 'income'
                                 ? 'text-green-600'
                                 : 'text-red-600'
@@ -271,16 +295,16 @@ export default function TransactionsPage() {
                             Rp {transaction.amount.toLocaleString()}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                           <button
                             onClick={() => handleEditTransaction(transaction)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-green-600 hover:text-green-700 font-semibold transition"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeleteTransaction(transaction.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-700 font-semibold transition"
                           >
                             Delete
                           </button>
@@ -292,24 +316,24 @@ export default function TransactionsPage() {
               </div>
 
               {/* Pagination */}
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex items-center justify-between">
                 <div className="text-sm text-gray-700">
-                  Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} transactions
+                  Showing <span className="font-semibold text-green-700">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
+                  <span className="font-semibold text-green-700">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{' '}
+                  <span className="font-semibold text-green-700">{pagination.total}</span> transactions
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-green-50 hover:border-green-300 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-green-50 hover:border-green-300 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium"
                   >
                     Next
                   </button>
