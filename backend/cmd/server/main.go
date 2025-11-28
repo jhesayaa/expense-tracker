@@ -64,6 +64,17 @@ func main() {
 		api.PUT("/categories/:id", handlers.UpdateCategory)
 		api.DELETE("/categories/:id", handlers.DeleteCategory)
 
+		// Transactions routes
+		api.GET("/transactions", handlers.GetTransactions)
+		api.GET("/transactions/:id", handlers.GetTransaction)
+		api.POST("/transactions", handlers.CreateTransaction)
+		api.PUT("/transactions/:id", handlers.UpdateTransaction)
+		api.DELETE("/transactions/:id", handlers.DeleteTransaction)
+		
+		// Reports routes
+		api.GET("/reports/monthly", handlers.GetMonthlyReport)
+		api.GET("/dashboard", handlers.GetDashboardStats)
+
 		// Transactions routes (will be implemented later)
 		// api.GET("/transactions", handlers.GetTransactions)
 		// api.POST("/transactions", handlers.CreateTransaction)
